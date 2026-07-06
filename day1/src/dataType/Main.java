@@ -9,7 +9,7 @@ public class Main {
     System.out.println("最大值：Byte.MAX_VALUE=" + Byte.MAX_VALUE);
     System.out.println();
 
-    // short
+    // short 
     System.out.println("基本类型：short 二进制位数：" + Short.SIZE);
     System.out.println("包装类：java.lang.Short");
     System.out.println("最小值：Short.MIN_VALUE=" + Short.MIN_VALUE);
