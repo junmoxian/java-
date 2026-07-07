@@ -376,3 +376,285 @@ Distraction Free Mode
 - `extends` 表示“是什么”。
 - `implements` 表示“能做什么”。
 - 接口定规则，实现类写具体逻辑。
+
+## 12. final 修饰类时，类成员是否也会变成 final
+
+### 问题
+
+`final` 定义的类，其中的属性、方法是不是也自动变成 `final`？
+
+### 摘要
+
+不是。
+
+`final class` 只表示这个类不能被继承，并不会自动让类中的属性或方法变成 `final`。
+
+```java
+public final class User {
+    private String name;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+含义：
+
+- `User` 不能再有子类。
+- `name` 没有被 `final` 修饰，仍然可以重新赋值。
+- `setName` 没有被 `final` 修饰，但因为类本身不能被继承，所以也不会有子类去重写它。
+
+### 复习句子
+
+```text
+final 修饰类：禁止继承。
+final 修饰属性：禁止二次赋值。
+final 修饰方法：禁止子类重写。
+```
+
+## 13. 自动类型转换和 char 的特殊情况
+
+### 问题
+
+自动类型转换是不是只能从小类型到大类型？`char` 为什么不能和 `byte`、`short` 自动互转？
+
+### 摘要
+
+一般情况下，自动类型转换是从取值范围小的类型转到取值范围大的类型。
+
+```java
+int i = 10;
+long l = i;
+double d = l;
+```
+
+大类型到小类型通常不能自动转换，但如果是编译器能确定范围的常量，可以直接赋值：
+
+```java
+byte b1 = 100; // 可以，100 在 byte 范围内
+
+int num = 100;
+// byte b2 = num; // 不可以，num 是变量，编译器不保证它一直是 100
+```
+
+`char` 比较特殊：
+
+```text
+char  范围：0 ~ 65535
+byte  范围：-128 ~ 127
+short 范围：-32768 ~ 32767
+```
+
+所以：
+
+```java
+char c = 'A';
+
+int i = c;
+long l = c;
+float f = c;
+double d = c;
+```
+
+这些可以自动转换，因为目标类型能容纳 `char` 的全部取值。
+
+但下面这些不可以：
+
+```java
+byte b = 65;
+short s = 65;
+
+// char c1 = b; // 不可以，byte 可能是负数
+// char c2 = s; // 不可以，short 可能是负数
+
+char c = 'A';
+
+// byte b2 = c;  // 不可以，char 最大值可能超过 byte
+// short s2 = c; // 不可以，char 最大值可能超过 short
+```
+
+### 复习句子
+
+```text
+char 可以自动转 int、long、float、double。
+byte、short、char 之间不是简单包含关系，所以不能自动互转。
+```
+
+## 14. 多态中为什么用父类作为子类对象的类型
+
+### 问题
+
+为什么经常写 `Animal animal = new Dog();`，而不是直接写 `Dog dog = new Dog();`？
+
+### 摘要
+
+父类作为引用类型，是为了用统一的父类标准接收不同子类对象。
+
+```java
+Animal animal = new Dog();
+animal.eat();
+```
+
+这句话的含义：
+
+```text
+编译类型：Animal
+运行时真实对象：Dog
+```
+
+调用方法时：
+
+- 编译时先检查 `Animal` 中有没有 `eat()` 方法。
+- 如果父类没有这个方法，编译报错。
+- 如果父类有这个方法，运行时再调用真实对象 `Dog` 重写后的方法。
+
+这样可以写出通用代码：
+
+```java
+public void feed(Animal animal) {
+    animal.eat();
+}
+```
+
+以后传入 `Dog`、`Cat`、`Bird` 都可以，只要它们是 `Animal` 的子类并实现对应行为。
+
+### 复习句子
+
+```text
+父类引用指向子类对象：编译看左边父类，运行看右边子类。
+```
+
+## 15. 虚函数
+
+### 问题
+
+什么是虚函数？
+
+### 摘要
+
+虚函数可以理解为：方法调用时，最终执行哪个版本，不只看变量声明类型，而是在运行时看对象真实类型。
+
+```java
+class Animal {
+    public void eat() {
+        System.out.println("动物吃东西");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    public void eat() {
+        System.out.println("狗吃骨头");
+    }
+}
+
+Animal animal = new Dog();
+animal.eat(); // 狗吃骨头
+```
+
+在 Java 中，普通成员方法默认支持这种动态绑定，所以可以理解为默认就是类似虚函数。
+
+不参与普通多态重写的情况：
+
+- `static` 方法属于类，不属于对象。
+- `final` 方法不能被重写。
+- `private` 方法子类不可见，不能被重写。
+- 构造方法不参与重写。
+
+### 复习句子
+
+```text
+虚函数服务于多态：父类引用调用方法，真正执行哪个方法由运行时对象决定。
+```
+
+## 16. 抽象类规则
+
+### 问题
+
+抽象类有哪些核心规则？
+
+### 摘要
+
+抽象类可以理解为“半成品类”，它不能直接创建对象，主要用于规定子类必须实现的能力。
+
+核心规则：
+
+- 抽象类不能被实例化，只有非抽象子类可以创建对象。
+- 抽象类中不一定有抽象方法，但有抽象方法的类必须是抽象类。
+- 抽象方法只有声明，没有方法体。
+- 构造方法不能声明为抽象方法。
+- `static` 方法不能声明为抽象方法。
+- 非抽象子类必须实现父类中的所有抽象方法。
+- 如果子类仍然是抽象类，可以暂时不实现父类的抽象方法。
+
+项目中的演示代码：
+
+```text
+src/AbstractClassDemo.java
+```
+
+### 复习句子
+
+```text
+抽象类负责定规则，普通子类负责补全实现。
+```
+
+## 17. 成员变量在方法中使用 this 和不使用 this 的区别
+
+### 问题
+
+类成员变量在类方法中不使用 `this` 和使用 `this` 有什么区别？
+
+### 摘要
+
+`this` 表示当前对象。
+
+没有重名变量时，下面两种写法效果一样：
+
+```java
+public String getName() {
+    return name;
+}
+
+public String getName() {
+    return this.name;
+}
+```
+
+有参数或局部变量重名时，必须用 `this` 区分成员变量：
+
+```java
+private String name;
+
+public void setName(String name) {
+    this.name = name;
+}
+```
+
+这里：
+
+```text
+this.name：当前对象的成员变量
+name：方法参数
+```
+
+如果写成：
+
+```java
+public void setName(String name) {
+    name = name;
+}
+```
+
+只是把参数赋值给参数自己，成员变量不会被修改。
+
+### 注意
+
+`static` 方法中不能使用 `this`，因为 `this` 代表当前对象，而 `static` 方法属于类本身，不属于某个具体对象。
+
+### 复习句子
+
+```text
+没有重名时，this 可写可不写；有重名时，this 用来明确访问成员变量。
+```
