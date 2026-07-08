@@ -1,6 +1,6 @@
-// package modifier;
+package modifier;// package modifier;
 
-public class Main {
+public class Modifier {
   /* 修饰符用来定义类、方法或者变量，通常放在语句的最前端 */
   /* default static int defaultVar = 0; // 默认变量 */
   public static int publicVar = 10; // 公有变量
